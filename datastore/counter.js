@@ -38,9 +38,32 @@ const writeCounter = (count, callback) => {
 
 // Public API - Fix this function //////////////////////////////////////////////
 
-exports.getNextUniqueId = () => {
-  counter = counter + 1;
-  return zeroPaddedNumber(counter);
+exports.getNextUniqueId = (callback) => {
+
+  // read check , initialize counter to what's in the harddrive
+  // if no file, then write initial counter to drive
+
+  console.log('1:counter ', counter);
+  readCounter(function(err, fileData) {
+    counter = fileData;
+    console.log('2: counter', counter);
+    callback(zeroPaddedNumber(counter));
+    if (err) {
+      writeCounter(counter, function(err, counterString) {
+        console.log('initial counter string written ', counterString);
+      });
+    } else {
+      counter = counter + 1;
+      writeCounter(counter, function(err, counterString) {
+        console.log('current string counter, will write to next one ', counterString);
+      });
+    }
+  });
+
+
+
+  // console.log('3:counter ', counter);
+  // return zeroPaddedNumber(counter); // how to make it wait for readCounter value of counter?
 };
 
 
