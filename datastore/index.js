@@ -29,7 +29,6 @@ exports.create = (text, callback) => {
 
 exports.readAll = (callback) => {
 
-  // console.log('TESTESTEST');
   // read the data directory
   // for each file grab the content of each file (which is a todo) and place in an array of todos
 
@@ -39,9 +38,9 @@ exports.readAll = (callback) => {
     } else {
       var obj = {};
       var data = files.map(function(e) {
-        return {id: e.substr(0,files.length - 7), text: 'fake todo'};
+        return {id: e.substr(0, e.lastIndexOf('.')), text: 'fake todo'};
       });
-      console.log('DATA ARRAY ', data);
+      console.log('DATA ARRAY ', data);   //  remove once done
       callback(null, data);
     }
   });
