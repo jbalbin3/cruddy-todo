@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const Promise = require('bluebird');
+Promise.promisifyAll(fs);
 
 var items = {};
 
@@ -28,28 +30,29 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-
   // read the data directory
   // for each file grab the content of each file (which is a todo) and place in an array of todos
-
-  fs.readdir(exports.dataDir,(err, files) => {
+  fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
       throw ('error using fs.readdir for readdir');
     } else {
-      var obj = {};
-      var data = files.map(function(e) {
-        return {id: e.substr(0, e.lastIndexOf('.')), text: 'fake todo'};
+      var data = [];
+      var runReads = [];
+      files.forEach(function(filename) {
+        runReads.push(fs.readFileAsync(`${exports.dataDir}/${filename}`, 'utf-8').then(function(todo) {
+          data.push({id: filename.substr(0, filename.lastIndexOf('.')), text: todo});
+        }));
       });
-      console.log('DATA ARRAY ', data);   //  remove once done
-      callback(null, data);
+
+      Promise.all(runReads)
+        .then(function() {
+          data.sort(function(a, b) {
+            return Number(a.id) - Number(b.id);
+          });
+          callback(null, data);
+        });
     }
   });
-
-  // var data = _.map(items, (text, id) => {
-  //   return { id, text };
-  // });
-  // var data = [{id: '00034', text: 'sleep'}, {id: '00035', text: 'eat'}, {id: '00036', text: 'clean'}];
-  // console.log('DATA1 ', data);
 };
 
 exports.readOne = (id, callback) => {
@@ -59,7 +62,6 @@ exports.readOne = (id, callback) => {
       throw (`No item with id: ${id}`);
     } else {
       text = text.toString();
-      console.log('TEST txt ', text);
       callback(null, {id, text});
     }
   });
